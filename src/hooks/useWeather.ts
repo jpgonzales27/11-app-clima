@@ -1,17 +1,30 @@
 import axios from "axios";
-import { SearchType, Wheather } from "../types";
+import { SearchType } from "../types";
+import { z } from "zod";
 
 // TYPE GUARD O ASSERTION
-function isWeatherResponse(weather: unknown): weather is Wheather {
-  return (
-    Boolean(weather) &&
-    typeof weather === "object" &&
-    typeof (weather as Wheather).name === "string" &&
-    typeof (weather as Wheather).main.temp === "number" &&
-    typeof (weather as Wheather).main.temp_max === "number" &&
-    typeof (weather as Wheather).main.temp_min === "number"
-  );
-}
+// function isWeatherResponse(weather: unknown): weather is Wheather {
+//   return (
+//     Boolean(weather) &&
+//     typeof weather === "object" &&
+//     typeof (weather as Wheather).name === "string" &&
+//     typeof (weather as Wheather).main.temp === "number" &&
+//     typeof (weather as Wheather).main.temp_max === "number" &&
+//     typeof (weather as Wheather).main.temp_min === "number"
+//   );
+// }
+
+// ZOD
+const Weather = z.object({
+  name: z.string(),
+  main: z.object({
+    temp: z.number(),
+    temp_max: z.number(),
+    temp_min: z.number(),
+  }),
+});
+
+type Weather = z.infer<typeof Weather>;
 
 export default function useWeather() {
   const fetchWeather = async (search: SearchType) => {
@@ -34,12 +47,20 @@ export default function useWeather() {
       // console.log(weatherData.main.temp_min);
 
       // Type Guards
+      //   const { data: weatherResult } = await axios(weatherUrl);
+      //   const result = isWeatherResponse(weatherResult);
+      //   if (result) {
+      //     console.log(weatherResult.name);
+      //   } else {
+      //     console.log("Respuesta mal formada");
+      //   }
+
+      // Zod
       const { data: weatherResult } = await axios(weatherUrl);
-      const result = isWeatherResponse(weatherResult);
-      if (result) {
-        console.log(weatherResult.name);
-      } else {
-        console.log("Respuesta mal formada");
+      const result = Weather.safeParse(weatherResult);
+      if (result.success) {
+        console.log(result.data.name);
+        console.log(result.data.main.temp);
       }
     } catch (error) {
       console.log(error);
