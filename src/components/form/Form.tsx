@@ -4,7 +4,11 @@ import styles from "./Form.module.css";
 import { SearchType } from "../../types";
 import Alert from "../alert/Alert";
 
-export default function Form() {
+type FormProps = {
+  fetchWeather: () => void;
+};
+
+export default function Form({ fetchWeather }: FormProps) {
   const [search, setSearch] = useState<SearchType>({
     city: "",
     country: "",
@@ -25,6 +29,7 @@ export default function Form() {
       setAlert("Please fill in all fields");
       return;
     }
+    fetchWeather();
   };
 
   return (
