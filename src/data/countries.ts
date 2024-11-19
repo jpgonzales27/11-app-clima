@@ -8,4 +8,5 @@ export const countries: Country[] = [
   { code: "CR", name: "Costa Rica" },
   { code: "ES", name: "España" },
   { code: "PE", name: "Perú" },
+  { code: "BO", name: "Bolivia" },
 ];
