@@ -1,7 +1,8 @@
 import axios from "axios";
-import { SearchType } from "../types";
-// import { z } from "zod";
-import { object, string, number, InferOutput, parse } from "valibot";
+import { SearchType, Wheather } from "../types";
+import { z } from "zod";
+import { useMemo, useState } from "react";
+// import { object, string, number, InferOutput, parse } from "valibot";
 
 // TYPE GUARD O ASSERTION
 // function isWeatherResponse(weather: unknown): weather is Wheather {
@@ -16,29 +17,38 @@ import { object, string, number, InferOutput, parse } from "valibot";
 // }
 
 // ZOD
-// const Weather = z.object({
-//   name: z.string(),
-//   main: z.object({
-//     temp: z.number(),
-//     temp_max: z.number(),
-//     temp_min: z.number(),
-//   }),
-// });
-
-// type Weather = z.infer<typeof Weather>;
-
-// Valibot
-const WeatherSchema = object({
-  name: string(),
-  main: object({
-    temp: number(),
-    temp_max: number(),
-    temp_min: number(),
+const Weather = z.object({
+  name: z.string(),
+  main: z.object({
+    temp: z.number(),
+    temp_max: z.number(),
+    temp_min: z.number(),
   }),
 });
-export type Weather = InferOutput<typeof WeatherSchema>;
+
+export type Weather = z.infer<typeof Weather>;
+
+// Valibot
+// const WeatherSchema = object({
+//   name: string(),
+//   main: object({
+//     temp: number(),
+//     temp_max: number(),
+//     temp_min: number(),
+//   }),
+// });
+// export type Weather = InferOutput<typeof WeatherSchema>;
 
 export default function useWeather() {
+  const [weather, setWeather] = useState<Wheather>({
+    name: "",
+    main: {
+      temp: 0,
+      temp_max: 0,
+      temp_min: 0,
+    },
+  });
+
   const fetchWeather = async (search: SearchType) => {
     const appId = import.meta.env.VITE_API_KEY;
 
@@ -68,25 +78,29 @@ export default function useWeather() {
       //   }
 
       // Zod
-      // const { data: weatherResult } = await axios(weatherUrl);
-      // const result = Weather.safeParse(weatherResult);
-      // if (result.success) {
-      //   console.log(result.data.name);
-      //   console.log(result.data.main.temp);
-      // }
+      const { data: weatherResult } = await axios(weatherUrl);
+      const result = Weather.safeParse(weatherResult);
+      if (result.success) {
+        console.log(result.data.name);
+        console.log(result.data.main.temp);
+        setWeather(result.data);
+      }
 
       // Valibot
-      const { data: weatherResult } = await axios(weatherUrl);
-      const result = parse(WeatherSchema, weatherResult);
-      if (result) {
-        console.log(result.name);
-      }
+      // const { data: weatherResult } = await axios(weatherUrl);
+      // const result = parse(WeatherSchema, weatherResult);
+      // if (result) {
+      //   console.log(result.name);
+      // }
     } catch (error) {
       console.log(error);
     }
   };
 
+  const hasWeatherData = useMemo(() => weather.name, [weather]);
   return {
+    weather,
     fetchWeather,
+    hasWeatherData,
   };
 }
